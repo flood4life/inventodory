@@ -1,0 +1,38 @@
+version: '3.8'
+
+volumes:
+  dbdata:
+    driver: local
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: &dbUser inventodory
+      POSTGRES_PASSWORD: &dbPassword inventodory
+    volumes:
+      - dbdata:/var/lib/postgresql/data/pgdata
+
+  web:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      RAILS_ENV: development
+      RACK_ENV: development
+      DB_HOST: db
+      DB_USER: *dbUser
+      DB_PASSWORD: *dbPassword
+    depends_on:
+      - db
+
+  webpack:
+    build: .
+    command: webpack-server
+    ports:
+      - '3035:3035'
+    environment:
+      NODE_ENV: development
+      RAILS_ENV: development
+      WEBPACKER_DEV_SERVER_HOST: 0.0.0.0
